@@ -1,16 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spec Matcher</title>
+    <title>Spec Matcher Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-        input { width: 100%; margin: 15px 0; }
-        .match { background: #d1e7dd; padding: 10px; margin: 5px 0; border-radius: 5px; }
-        .error { color: red; font-size: 12px; }
+        body { font-family: -apple-system, sans-serif; padding: 15px; background: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .match { background: #e8f5e9; padding: 10px; margin: 8px 0; border-radius: 6px; border-left: 4px solid #4caf50; font-size: 13px; }
+        .context { display: block; font-style: italic; color: #555; margin-top: 4px; font-size: 12px; }
+        .page-tag { font-weight: bold; color: #2e7d32; }
     </style>
 </head>
 <body>
@@ -21,9 +22,7 @@
 </div>
 
 <script>
-    // Set the worker specifically to the same version as the library
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-
     const TARGETS = ["Scope", "Material", "Installation", "Warranty", "Compliance"];
 
     document.getElementById('pdfUpload').addEventListener('change', async (e) => {
@@ -31,27 +30,37 @@
         const resultsDiv = document.getElementById('results');
         if (!file) return;
 
-        resultsDiv.innerHTML = "Processing...";
+        resultsDiv.innerHTML = "Analyzing...";
 
         try {
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             
-            let found = [];
+            let htmlOutput = "<h3>Found Clauses:</h3>";
+            
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 const text = textContent.items.map(s => s.str).join(" ");
                 
                 TARGETS.forEach(t => {
-                    if (new RegExp(t, 'i').test(text)) {
-                        found.push(`<div>✅ ${t} (Page ${i})</div>`);
+                    const regex = new RegExp(t, 'gi');
+                    let match;
+                    // Find all occurrences on this page
+                    while ((match = regex.exec(text)) !== null) {
+                        // Extract a snippet of text (50 chars after the match)
+                        const snippet = text.substring(match.index, match.index + 60).replace(/[<>]/g, "");
+                        htmlOutput += `
+                            <div class="match">
+                                <strong>${t}</strong> <span class="page-tag">(Page ${i})</span>
+                                <span class="context">...${snippet}...</span>
+                            </div>`;
                     }
                 });
             }
-            resultsDiv.innerHTML = found.length > 0 ? found.join('') : "No matches found.";
+            resultsDiv.innerHTML = htmlOutput;
         } catch (err) {
-            resultsDiv.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+            resultsDiv.innerHTML = `<div style="color:red">Error: ${err.message}</div>`;
         }
     });
 </script>
