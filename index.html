@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spec Matcher</title>
-    
-    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        body { font-family: sans-serif; padding: 20px; }
         .container { max-width: 600px; margin: auto; }
-        input, button { width: 100%; padding: 10px; margin-top: 10px; }
-        #results { margin-top: 20px; border-top: 1px solid #ccc; }
+        #results { margin-top: 20px; }
         .match { background: #e7f3ff; padding: 10px; margin: 5px 0; border-radius: 5px; }
     </style>
 </head>
@@ -23,8 +20,8 @@
 </div>
 
 <script>
-    // Define worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+    // Set worker path
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const HEADLINES = ["Scope", "Materials", "Installation", "Warranty", "Compliance"];
 
@@ -32,25 +29,35 @@
         const file = e.target.files[0];
         if (!file) return;
 
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = "Processing...";
+
         const reader = new FileReader();
         reader.onload = async function() {
-            const typedarray = new Uint8Array(this.result);
-            const pdf = await pdfjsLib.getDocument(typedarray).promise;
-            let fullText = "";
-            
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(s => s.str).join(" ");
-            }
-
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = "<h3>Found Clauses:</h3>";
-            HEADLINES.forEach(h => {
-                if (fullText.toLowerCase().includes(h.toLowerCase())) {
-                    resultsDiv.innerHTML += `<div class="match">✅ Found: <strong>${h}</strong></div>`;
+            try {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(s => s.str).join(" ");
                 }
-            });
+
+                resultsDiv.innerHTML = "<h3>Found Clauses:</h3>";
+                let foundAny = false;
+                HEADLINES.forEach(h => {
+                    if (fullText.toLowerCase().includes(h.toLowerCase())) {
+                        resultsDiv.innerHTML += `<div class="match">✅ Found: <strong>${h}</strong></div>`;
+                        foundAny = true;
+                    }
+                });
+                if (!foundAny) resultsDiv.innerHTML += "<p>No matching headlines found.</p>";
+            } catch (err) {
+                console.error(err);
+                resultsDiv.innerHTML = "Error processing PDF. Check Console.";
+            }
         };
         reader.readAsArrayBuffer(file);
     });
