@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spec Matcher</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    
     <style>
         body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
         .container { max-width: 600px; margin: auto; }
@@ -21,12 +23,16 @@
 </div>
 
 <script>
+    // Define worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+
     const HEADLINES = ["Scope", "Materials", "Installation", "Warranty", "Compliance"];
 
     document.getElementById('pdfUpload').addEventListener('change', async (e) => {
         const file = e.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
-        
         reader.onload = async function() {
             const typedarray = new Uint8Array(this.result);
             const pdf = await pdfjsLib.getDocument(typedarray).promise;
@@ -38,7 +44,6 @@
                 fullText += textContent.items.map(s => s.str).join(" ");
             }
 
-            // Simple matching
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = "<h3>Found Clauses:</h3>";
             HEADLINES.forEach(h => {
