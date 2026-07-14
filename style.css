@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
 
 body { 
     display: flex; 
@@ -20,9 +20,10 @@ body {
     overflow-y: auto;
     cursor: pointer;
     
-    /* Combined and Corrected Styles */
-    font-family: 'Chewy', cursive; 
+    /* Font styles */
+    font-family: 'Patrick Hand', cursive; 
     font-size: 24px;
+    font-weight: normal;
     line-height: 30px; 
     letter-spacing: 0.5px; 
     white-space: pre-wrap;
