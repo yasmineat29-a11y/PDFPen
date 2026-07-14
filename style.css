@@ -18,7 +18,10 @@ body {
     border: 1px solid #999;
     padding: 20px;
     overflow-y: auto;
-    cursor: pointer;
+    
+    /* Crucial for multi-finger vs scrape logic */
+    touch-action: pan-y; 
+    user-select: none;
     
     /* Font styles */
     font-family: 'Patrick Hand', cursive; 
