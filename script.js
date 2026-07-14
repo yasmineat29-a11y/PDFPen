@@ -62,3 +62,38 @@ notebook.addEventListener('touchstart', (e) => {
 });
 
 notebook.addEventListener('click', startWriting);
+// ... keep your imports ...
+
+uploadBtn.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+        console.log("No file selected.");
+        return;
+    }
+    console.log("File detected:", file.name);
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+        console.log("File loaded into memory, starting PDF processing...");
+        try {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            console.log("PDF loaded. Pages:", pdf.numPages);
+            
+            const page = await pdf.getPage(1);
+            const content = await page.getTextContent();
+            
+            // Check if text items exist
+            console.log("Content items found:", content.items.length);
+            pdfText = content.items.map(item => item.str).join(" ");
+            
+            console.log("Extracted text (first 50 chars):", pdfText.substring(0, 50));
+            alert("File processed! Text ready.");
+        } catch (error) {
+            console.error("Error processing PDF:", error);
+            alert("Error: " + error.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+});
+
