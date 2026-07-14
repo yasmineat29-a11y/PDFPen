@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+
 body { 
     display: flex; 
     flex-direction: column; 
@@ -18,10 +20,10 @@ body {
     overflow-y: auto;
     cursor: pointer;
     
-    /* Updated for distinct, clean letter separation */
-    font-family: 'Courier Prime', monospace;
-    font-size: 20px;
-    line-height: 30px; /* Matches the 30px line height in background-image */
-    letter-spacing: 2px;
-    white-space: pre-wrap; /* Ensures letters don't clump */
+    /* Combined and Corrected Styles */
+    font-family: 'Chewy', cursive; 
+    font-size: 24px;
+    line-height: 30px; 
+    letter-spacing: 0.5px; 
+    white-space: pre-wrap;
 }
