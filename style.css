@@ -1,7 +1,14 @@
-body { display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: sans-serif; }
+body { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: 20px; 
+    font-family: sans-serif; 
+    background-color: #f0f0f0;
+}
 
 .notebook {
-    width: 90vw; /* Responsive width */
+    width: 90vw; 
     max-width: 600px;
     height: 70vh;
     background: white;
@@ -9,7 +16,12 @@ body { display: flex; flex-direction: column; align-items: center; padding: 20px
     border: 1px solid #999;
     padding: 20px;
     overflow-y: auto;
-    cursor: pointer; /* Indicates touchable */
-    font-family: 'Dancing Script', cursive;
+    cursor: pointer;
+    
+    /* Updated for distinct, clean letter separation */
+    font-family: 'Courier Prime', monospace;
     font-size: 20px;
+    line-height: 30px; /* Matches the 30px line height in background-image */
+    letter-spacing: 2px;
+    white-space: pre-wrap; /* Ensures letters don't clump */
 }
