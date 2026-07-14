@@ -42,47 +42,43 @@ uploadBtn.addEventListener('change', async (e) => {
 
 // ... keep your existing imports and PDF processing ...
 
-// 4. Improved Animation & Navigation
-let animationTimeout = null;
 
-function type() {
-    if (currentIndex < pdfText.length && isWriting) {
-        // Use textContent instead of innerHTML to prevent layout shifts/spacing issues
-        output.textContent = pdfText.substring(0, currentIndex + 1);
-        currentIndex++;
-        
-        // Auto-scroll logic: only scroll if the user isn't actively reading higher up
-        if (notebook.scrollHeight - notebook.scrollTop < notebook.clientHeight + 100) {
-            notebook.scrollTop = notebook.scrollHeight;
-        }
-        
-        animationTimeout = setTimeout(type, 30); 
-    } else {
-        isWriting = false;
-    }
-}
+// 4. State for Scrape/Scroll
+let isScraping = false;
 
-function startWriting() {
+function updateTextOnScrape(yPosition) {
     if (!pdfText) return;
+
+    const rect = notebook.getBoundingClientRect();
+    const relativeY = yPosition - rect.top + notebook.scrollTop;
     
-    if (isWriting) {
-        isWriting = false;
-        clearTimeout(animationTimeout); // Stop the loop
-    } else {
-        isWriting = true;
-        type();
-    }
+    // Calculate progress (0 to 1) based on touch position relative to visible content
+    const scrollableHeight = Math.max(notebook.scrollHeight, notebook.clientHeight);
+    const progress = Math.min(Math.max(relativeY / scrollableHeight, 0), 1);
+    
+    currentIndex = Math.floor(progress * pdfText.length);
+    output.textContent = pdfText.substring(0, currentIndex);
 }
 
-// 5. Add a Scroll Listener to allow manual navigation
-notebook.addEventListener('scroll', () => {
-    // Optional: Calculate current index based on scroll position 
-    // to allow user to "jump" and resume from there
-    const percentage = notebook.scrollTop / (notebook.scrollHeight - notebook.clientHeight);
-    if (!isNaN(percentage)) {
-        currentIndex = Math.floor(percentage * pdfText.length);
+// 5. Gesture Handling
+notebook.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        isScraping = true;
+        updateTextOnScrape(e.touches[0].clientY);
+    } else {
+        isScraping = false;
     }
-});
+}, { passive: false });
+
+notebook.addEventListener('touchmove', (e) => {
+    if (isScraping && e.touches.length === 1) {
+        e.preventDefault(); // Stop scrolling while scraping
+        updateTextOnScrape(e.touches[0].clientY);
+    } else {
+        isScraping = false; // Disable scrape if second finger touches
+    }
+}, { passive: false });
+
 
 
 // 6. Trigger events
