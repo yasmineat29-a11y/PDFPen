@@ -4,12 +4,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build
 
 // 2. State variables
 let pdfText = "";
-let isWriting = false; // Tracks animation state
+let isWriting = false; 
+let currentIndex = 0; 
 const output = document.getElementById('handwriting-output');
 const notebook = document.getElementById('notebook');
 const uploadBtn = document.getElementById('pdf-upload');
 
-// 3. Handle PDF file selection and extraction (All Pages)
+// 3. Handle PDF file selection
 uploadBtn.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -21,18 +22,17 @@ uploadBtn.addEventListener('change', async (e) => {
             const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
             
             let fullText = "";
-            // Loop through every page in the PDF
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const content = await page.getTextContent();
-                
-                // Sort by vertical position (top-down)
                 const sortedItems = content.items.sort((a, b) => b.transform[5] - a.transform[5]);
                 fullText += sortedItems.map(item => item.str).join(" ") + " ";
             }
             
             pdfText = fullText;
-            alert("File processed! Touch the notebook to start or stop writing.");
+            currentIndex = 0; 
+            output.innerHTML = "";
+            alert("File processed! Touch the notebook to start, pause, or resume.");
         } catch (error) {
             alert("Error processing PDF: " + error.message);
         }
@@ -40,25 +40,21 @@ uploadBtn.addEventListener('change', async (e) => {
     reader.readAsArrayBuffer(file);
 });
 
-// 4. Animation function with Stop/Start control
+// 4. Animation function with Pause/Resume control
 function startWriting() {
     if (!pdfText) return;
 
     if (isWriting) {
-        // If already writing, stop it
-        isWriting = false;
+        isWriting = false; 
         return;
     }
 
-    isWriting = true;
-    output.innerHTML = ""; // Clear existing text
+    isWriting = true; 
     
-    let i = 0;
     function type() {
-        if (i < pdfText.length && isWriting) {
-            output.innerHTML += pdfText.charAt(i);
-            i++;
-            // Auto-scroll the notebook
+        if (currentIndex < pdfText.length && isWriting) {
+            output.innerHTML += pdfText.charAt(currentIndex);
+            currentIndex++;
             notebook.scrollTop = notebook.scrollHeight;
             setTimeout(type, 30); 
         } else {
