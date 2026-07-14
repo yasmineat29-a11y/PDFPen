@@ -1,3 +1,4 @@
+
 // 1. Import PDF.js
 import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
@@ -20,23 +21,21 @@ uploadBtn.addEventListener('change', async (e) => {
         console.log("Processing PDF...");
         try {
             const typedarray = new Uint8Array(this.result);
-            
-            // FIX IS HERE: Wrapped typedarray in { data: ... }
             const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise; 
             
             const page = await pdf.getPage(1);
-            // Replace your extraction logic with this:
-const content = await page.getTextContent();
+            const content = await page.getTextContent();
 
-// Sort by vertical position (y) first, then horizontal (x)
-const sortedItems = content.items.sort((a, b) => {
-    // If y-positions are close (same line), sort by x (left to right)
-    if (Math.abs(a.transform[5] - b.transform[5]) < 5) {
-        return a.transform[4] - b.transform[4];
-    }
-    // Otherwise, sort by y (top to bottom)
-    return b.transform[5] - a.transform[5];
-});
+            // Sort by vertical position (y) first, then horizontal (x)
+            const sortedItems = content.items.sort((a, b) => {
+                if (Math.abs(a.transform[5] - b.transform[5]) < 5) {
+                    return a.transform[4] - b.transform[4];
+                }
+                return b.transform[5] - a.transform[5];
+            });
+
+            // FIX: Assign the extracted and sorted text to the variable
+            pdfText = sortedItems.map(item => item.str).join(" ");
 
             console.log("Text successfully extracted:", pdfText.substring(0, 50) + "...");
             alert("File processed! Touch the notebook to write.");
@@ -55,7 +54,7 @@ function startWriting() {
         return;
     }
     
-    output.innerHTML = ""; // Clear existing text
+    output.innerHTML = ""; 
     
     let i = 0;
     function type() {
