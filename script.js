@@ -1,76 +1,62 @@
+// ... (imports remain the same) ...
 
-// 1. Import PDF.js
-import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
-
-// 2. State variables
 let pdfText = "";
-const output = document.getElementById('handwriting-output');
-const notebook = document.getElementById('notebook');
-const uploadBtn = document.getElementById('pdf-upload');
+let isWriting = false; // New flag to track animation state
 
-// 3. Handle PDF file selection and extraction
-uploadBtn.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    console.log("File detected:", file.name);
-    const reader = new FileReader();
-    
-    reader.onload = async function() {
-        console.log("Processing PDF...");
-        try {
-            const typedarray = new Uint8Array(this.result);
-            const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise; 
-            
-            const page = await pdf.getPage(1);
+// 3. Handle PDF (Extract all pages)
+reader.onload = async function() {
+    try {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        
+        let fullText = "";
+        // Loop through all pages
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
             const content = await page.getTextContent();
-
-            // Sort by vertical position (y) first, then horizontal (x)
-            const sortedItems = content.items.sort((a, b) => {
-                if (Math.abs(a.transform[5] - b.transform[5]) < 5) {
-                    return a.transform[4] - b.transform[4];
-                }
-                return b.transform[5] - a.transform[5];
-            });
-
-            // FIX: Assign the extracted and sorted text to the variable
-            pdfText = sortedItems.map(item => item.str).join(" ");
-
-            console.log("Text successfully extracted:", pdfText.substring(0, 50) + "...");
-            alert("File processed! Touch the notebook to write.");
-        } catch (error) {
-            console.error("Error processing PDF:", error);
-            alert("Error: " + error.message);
+            const sortedItems = content.items.sort((a, b) => b.transform[5] - a.transform[5]);
+            fullText += sortedItems.map(item => item.str).join(" ") + " ";
         }
-    };
-    reader.readAsArrayBuffer(file);
-});
+        
+        pdfText = fullText;
+        alert("Success! PDF loaded.");
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+};
 
-// 4. Animation function
+// 4. Improved Animation
 function startWriting() {
-    if (!pdfText) {
-        alert("Please upload a PDF file first!");
-        return;
-    }
+    if (!pdfText) return;
+
+    // If already writing, stop it (reset)
+    isWriting = false; 
     
-    output.innerHTML = ""; 
-    
-    let i = 0;
-    function type() {
-        if (i < pdfText.length) {
-            output.innerHTML += pdfText.charAt(i);
-            i++;
-            setTimeout(type, 30); 
+    // Use a small delay to ensure the reset happens before starting again
+    setTimeout(() => {
+        isWriting = true;
+        output.innerHTML = "";
+        let i = 0;
+
+        function type() {
+            if (i < pdfText.length && isWriting) {
+                output.innerHTML += pdfText.charAt(i);
+                i++;
+                // Keep the notebook scrolled to the bottom
+                notebook.scrollTop = notebook.scrollHeight;
+                setTimeout(type, 30);
+            }
         }
-    }
-    type();
+        type();
+    }, 100);
 }
 
-// 5. Trigger on touch (mobile) or click (desktop)
+// 5. Touch events
 notebook.addEventListener('touchstart', (e) => {
-    e.preventDefault(); 
-    startWriting();
+    e.preventDefault();
+    if (isWriting) {
+        isWriting = false; // Stop the writing
+    } else {
+        startWriting(); // Start the writing
+    }
 }, { passive: false });
-
-notebook.addEventListener('click', startWriting);
