@@ -73,3 +73,36 @@ notebook.addEventListener('touchmove', (e) => {
 notebook.addEventListener('touchend', () => {
     mode = null;
 });
+
+// Add Search Functionality
+const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
+
+searchBtn.addEventListener('click', () => {
+    const searchTerm = searchInput.value.trim();
+    
+    if (!pdfText) {
+        alert("Please upload a PDF first.");
+        return;
+    }
+    
+    if (!searchTerm) return;
+
+    // Search case-insensitive
+    const index = pdfText.toLowerCase().indexOf(searchTerm.toLowerCase());
+
+    if (index !== -1) {
+        // Update current position
+        currentIndex = index;
+        
+        // Update the visual output to the point of the word
+        output.textContent = pdfText.substring(0, currentIndex);
+        
+        // Visual feedback
+        searchInput.style.borderColor = "#4CAF50";
+        setTimeout(() => searchInput.style.borderColor = "", 1000);
+    } else {
+        alert("Word not found!");
+        searchInput.style.borderColor = "red";
+    }
+});
