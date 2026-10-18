@@ -1,36 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
 
-Body { 
-    Display: flex; 
-    Flex-direction: column; 
-    Align-items: center; 
-    Padding: 20px; 
-    Font-family: sans-serif; 
-    Background-color: #f0f0f0;
+body { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: 20px; 
+    font-family: sans-serif; 
+    background-color: #f0f0f0;
 }
 
 .notebook {
-    Width: 90vw; 
-    Max-width: 600px;
-    Height: 70vh;
-    Background: white;
-    Background-image: repeating-linear-gradient(transparent, transparent 30px, #ccc 30px, #ccc 31px);
-    Border: 1px solid #999;
-    Padding: 20px;
-    
-    /* ✨ FIX: Added bottom padding so text never hugs the bottom edge */
-    Padding-bottom: 40vh; 
-    Box-sizing: border-box;
+    width: 90vw; 
+    max-width: 600px;
+    height: 70vh;
+    background: white;
+    background-image: repeating-linear-gradient(transparent, transparent 30px, #ccc 30px, #ccc 31px);
+    border: 1px solid #999;
+    padding: 20px;
+    overflow-y: auto;
     
     /* Crucial for multi-finger vs scrape logic */
-    Touch-action: pan-y; 
-    Overflow-y: auto;
+    touch-action: pan-y; /* Allows vertical scrolling by default */
+    overflow-y: auto;
     
     /* Font styles */
-    Font-family: 'Patrick Hand', cursive; 
-    Font-size: 24px;
-    Font-weight: normal;
-    Line-height: 30px; 
-    Letter-spacing: 0.5px; 
-    White-space: pre-wrap;
+    font-family: 'Patrick Hand', cursive; 
+    font-size: 24px;
+    font-weight: normal;
+    line-height: 30px; 
+    letter-spacing: 0.5px; 
+    white-space: pre-wrap;
 }
