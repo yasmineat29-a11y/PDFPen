@@ -11,7 +11,7 @@ const output = document.getElementById('handwriting-output');
 const notebook = document.getElementById('notebook');
 const uploadBtn = document.getElementById('pdf-upload');
 
-// 1. Process PDF
+// 1. Process PDF (Same as before)
 uploadBtn.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -50,7 +50,7 @@ notebook.addEventListener('touchmove', (e) => {
 
     // Determine mode
     if (!mode) {
-        if (Math.abs(dx) > Math.abs(dy) + 10) { 
+        if (Math.abs(dx) > Math.abs(dy) + 10) { // Added threshold to avoid accidental triggers
             mode = 'reveal';
         } else if (Math.abs(dy) > 10) {
             mode = 'navigate';
@@ -60,13 +60,14 @@ notebook.addEventListener('touchmove', (e) => {
     if (mode === 'reveal') {
         e.preventDefault();
         
+        // SENSITIVITY: 10 pixels moved = 1 character revealed
         const revealSpeed = 10; 
         const deltaIndex = Math.floor(dx / revealSpeed);
         
         currentIndex = Math.max(0, Math.min(baseIndex + deltaIndex, pdfText.length));
         output.textContent = pdfText.substring(0, currentIndex);
         
-        // Automatically scroll notebook down as new text appears so it stays in view
+        // --- ADDED FEATURE: Keep latest text in view as you reveal ---
         notebook.scrollTop = notebook.scrollHeight;
     }
 }, { passive: false });
@@ -93,10 +94,16 @@ searchBtn.addEventListener('click', () => {
     const index = pdfText.toLowerCase().indexOf(searchTerm.toLowerCase());
 
     if (index !== -1) {
+        // Update current position
         currentIndex = index;
+        
+        // Update the visual output to the point of the word
         output.textContent = pdfText.substring(0, currentIndex);
+        
+        // --- ADDED FEATURE: Scroll to the found word position ---
         notebook.scrollTop = notebook.scrollHeight;
         
+        // Visual feedback
         searchInput.style.borderColor = "#4CAF50";
         setTimeout(() => searchInput.style.borderColor = "", 1000);
     } else {
