@@ -66,7 +66,7 @@ notebook.addEventListener('touchmove', (e) => {
         currentIndex = Math.max(0, Math.min(baseIndex + deltaIndex, pdfText.length));
         output.textContent = pdfText.substring(0, currentIndex);
         
-        // Automatically scroll notebook down as new text appears so it doesn't get cut off at the bottom
+        // Automatically scroll notebook down as new text appears so it stays in view
         notebook.scrollTop = notebook.scrollHeight;
     }
 }, { passive: false });
