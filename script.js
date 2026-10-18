@@ -1,108 +1,106 @@
-Import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
+import * as pdfjsLib from 'https://mozilla.github.io/pdf.js/build/pdf.mjs';
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
 
-Let pdfText = "";
-Let startX, startY;
-Let mode = null; 
-Let baseIndex = 0; // The index where we started the swipe
-Let currentIndex = 0;
+let pdfText = "";
+let startX, startY;
+let mode = null; 
+let baseIndex = 0; // The index where we started the swipe
+let currentIndex = 0;
 
-Const output = document.getElementById('handwriting-output');
-Const notebook = document.getElementById('notebook');
-Const uploadBtn = document.getElementById('pdf-upload');
+const output = document.getElementById('handwriting-output');
+const notebook = document.getElementById('notebook');
+const uploadBtn = document.getElementById('pdf-upload');
 
 // 1. Process PDF
 uploadBtn.addEventListener('change', async (e) => {
-    Const file = e.target.files[0];
-    If (!file) return;
-    Const reader = new FileReader();
-    Reader.onload = async function() {
-        Const typedarray = new Uint8Array(this.result);
-        Const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-        Let fullText = "";
-        For (let i = 1; i <= pdf.numPages; i++) {
-            Const page = await pdf.getPage(i);
-            Const content = await page.getTextContent();
-            Const sortedItems = content.items.sort((a, b) => b.transform[5] - a.transform[5]);
-            FullText += sortedItems.map(item => item.str).join("") + "\n";
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function() {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        let fullText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const sortedItems = content.items.sort((a, b) => b.transform[5] - a.transform[5]);
+            fullText += sortedItems.map(item => item.str).join("") + "\n";
         }
-        PdfText = fullText;
-        CurrentIndex = 0;
-        Output.textContent = "";
-        Alert("PDF Ready! Swipe right to reveal, drag up/down to navigate.");
+        pdfText = fullText;
+        currentIndex = 0;
+        output.textContent = "";
+        alert("PDF Ready! Swipe right to reveal, drag up/down to navigate.");
     };
-    Reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(file);
 });
 
 // 2. Gesture Detection
 notebook.addEventListener('touchstart', (e) => {
-    StartX = e.touches[0].clientX;
-    StartY = e.touches[0].clientY;
-    Mode = null; 
-    BaseIndex = currentIndex; // Lock in the starting index
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    mode = null; 
+    baseIndex = currentIndex; // Lock in the starting index
 }, { passive: false });
 
 notebook.addEventListener('touchmove', (e) => {
-    Const currentX = e.touches[0].clientX;
-    Const currentY = e.touches[0].clientY;
-    Const dx = currentX - startX;
-    Const dy = currentY - startY;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const dx = currentX - startX;
+    const dy = currentY - startY;
 
     // Determine mode
-    If (!mode) {
-        If (Math.abs(dx) > Math.abs(dy) + 10) { 
-            Mode = 'reveal';
+    if (!mode) {
+        if (Math.abs(dx) > Math.abs(dy) + 10) { 
+            mode = 'reveal';
         } else if (Math.abs(dy) > 10) {
-            Mode = 'navigate';
+            mode = 'navigate';
         }
     }
 
-    If (mode === 'reveal') {
-        E.preventDefault();
+    if (mode === 'reveal') {
+        e.preventDefault();
         
-        Const revealSpeed = 10; 
-        Const deltaIndex = Math.floor(dx / revealSpeed);
+        const revealSpeed = 10; 
+        const deltaIndex = Math.floor(dx / revealSpeed);
         
-        CurrentIndex = Math.max(0, Math.min(baseIndex + deltaIndex, pdfText.length));
-        Output.textContent = pdfText.substring(0, currentIndex);
+        currentIndex = Math.max(0, Math.min(baseIndex + deltaIndex, pdfText.length));
+        output.textContent = pdfText.substring(0, currentIndex);
         
-        // ✨ FIX: Automatically scroll notebook down as new text appears
-        Notebook.scrollTop = notebook.scrollHeight;
+        // Automatically scroll notebook down as new text appears so it doesn't get cut off at the bottom
+        notebook.scrollTop = notebook.scrollHeight;
     }
 }, { passive: false });
 
 notebook.addEventListener('touchend', () => {
-    Mode = null;
+    mode = null;
 });
 
 // Add Search Functionality
-Const searchInput = document.getElementById('search-input');
-Const searchBtn = document.getElementById('search-btn');
+const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
 
-SearchBtn.addEventListener('click', () => {
-    Const searchTerm = searchInput.value.trim();
+searchBtn.addEventListener('click', () => {
+    const searchTerm = searchInput.value.trim();
     
-    If (!pdfText) {
-        Alert("Please upload a PDF first.");
+    if (!pdfText) {
+        alert("Please upload a PDF first.");
         return;
     }
     
-    If (!searchTerm) return;
+    if (!searchTerm) return;
 
     // Search case-insensitive
-    Const index = pdfText.toLowerCase().indexOf(searchTerm.toLowerCase());
+    const index = pdfText.toLowerCase().indexOf(searchTerm.toLowerCase());
 
-    If (index !== -1) {
-        CurrentIndex = index;
-        Output.textContent = pdfText.substring(0, currentIndex);
+    if (index !== -1) {
+        currentIndex = index;
+        output.textContent = pdfText.substring(0, currentIndex);
+        notebook.scrollTop = notebook.scrollHeight;
         
-        // ✨ FIX: Scroll directly to the found text position
-        Notebook.scrollTop = notebook.scrollHeight;
-        
-        SearchInput.style.borderColor = "#4CAF50";
-        SetTimeout(() => searchInput.style.borderColor = "", 1000);
+        searchInput.style.borderColor = "#4CAF50";
+        setTimeout(() => searchInput.style.borderColor = "", 1000);
     } else {
-        Alert("Word not found!");
-        SearchInput.style.borderColor = "red";
+        alert("Word not found!");
+        searchInput.style.borderColor = "red";
     }
 });
